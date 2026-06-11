@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
+
+import { CreateNotificationDto } from '@pulse/shared';
 
 @Controller('notification')
 export class NotificationController {

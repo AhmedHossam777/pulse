@@ -1,10 +1,5 @@
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-
-export enum NotificationChannel {
-  EMAIL = 'EMAIL',
-  SMS = 'SMS',
-  PUSH = 'PUSH',
-}
+import { NotificationChannel } from '../enums/notification-channel.enum';
 
 export class CreateNotificationDto {
   @IsEnum(NotificationChannel)
