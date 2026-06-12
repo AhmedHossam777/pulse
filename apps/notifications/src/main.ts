@@ -3,19 +3,22 @@ import { AppModule } from './app/app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
+  const host = process.env.REDIS_HOST ?? 'localhost';
+  const port = Number(process.env.REDIS_PORT ?? 6379);
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
-      transport: Transport.TCP,
+      transport: Transport.REDIS,
       options: {
-        host: '0.0.0.0',
-        port: 4001,
+        host,
+        port,
       },
     },
   );
 
   await app.listen();
-  console.log('notifications microservice listening on tcp://0.0.0.0:4001');
+  console.log(`notifications microservice connected to Redis at ${host}:${port}`);
 }
 
 bootstrap();
