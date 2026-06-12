@@ -1,0 +1,26 @@
+{
+  "name": "@pulse/notifications-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "implicitDependencies": [
+      "@pulse/notifications"
+    ],
+    "targets": {
+      "e2e": {
+        "executor": "@nx/jest:jest",
+        "outputs": [
+          "{projectRoot}/test-output/jest/coverage"
+        ],
+        "options": {
+          "jestConfig": "apps/notifications-e2e/jest.config.cts",
+          "passWithNoTests": true
+        },
+        "dependsOn": [
+          "@pulse/notifications:build",
+          "@pulse/notifications:serve"
+        ]
+      }
+    }
+  }
+}

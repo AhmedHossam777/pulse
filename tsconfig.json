@@ -11,6 +11,12 @@
     },
     {
       "path": "./libs/shared"
+    },
+    {
+      "path": "./apps/notifications-e2e"
+    },
+    {
+      "path": "./apps/notifications"
     }
   ]
 }
