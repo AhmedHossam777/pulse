@@ -17,6 +17,12 @@
     },
     {
       "path": "./apps/notifications"
+    },
+    {
+      "path": "./libs/database"
+    },
+    {
+      "path": "./libs/auth"
     }
   ]
 }
