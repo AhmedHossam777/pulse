@@ -1,23 +1,21 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
-import { NotificationService } from './notification.service';
-import { NotificationController } from './notification.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { grpc } from '@pulse/shared';
+import { NotificationController } from './notification.controller';
+import { NotificationService } from './notification.service';
 
 @Module({
   imports: [
-    ClientsModule.registerAsync([
+    ClientsModule.register([
       {
-        name: 'NOTIFICATIONS_CLIENT',
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: (config: ConfigService) => ({
-          transport: Transport.REDIS,
-          options: {
-            host: config.get<string>('REDIS_HOST', 'localhost'),
-            port: config.get<number>('REDIS_PORT', 6379),
-          },
-        }),
+        name: 'NOTIFICATIONS_PACKAGE',
+        transport: Transport.GRPC,
+        options: {
+          package: grpc.NOTIFICATION_PACKAGE,
+          protoPath: join(__dirname, 'proto/notification.proto'),
+          url: '127.0.0.1:4001',
+        },
       },
     ]),
   ],

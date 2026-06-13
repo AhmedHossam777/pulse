@@ -1,36 +1,27 @@
-// notifications.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-
-export interface NotificationRecord extends CreateNotificationDto {
-  id: string;
-  status: 'PENDING' | 'SENT' | 'FAILED';
-  createdAt: string;
-}
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import type { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { grpc } from '@pulse/shared';
 
 @Injectable()
-export class NotificationService {
-  private readonly store = new Map<string, NotificationRecord>();
+export class NotificationService implements OnModuleInit {
+  private notificationGrpc!: grpc.NotificationGrpc;
 
-  create(dto: CreateNotificationDto): NotificationRecord {
-    const record: NotificationRecord = {
-      ...dto,
-      id: randomUUID(),
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-    };
-    this.store.set(record.id, record);
-    return record;
+  constructor(
+    @Inject('NOTIFICATIONS_PACKAGE') private readonly client: ClientGrpc,
+  ) {}
+
+  onModuleInit() {
+    this.notificationGrpc = this.client.getService<grpc.NotificationGrpc>(
+      grpc.NOTIFICATION_SERVICE,
+    );
   }
 
-  findAll(): NotificationRecord[] {
-    return [...this.store.values()];
+  send(payload: grpc.SendRequest): Promise<grpc.SendResponse> {
+    return firstValueFrom(this.notificationGrpc.send(payload));
   }
 
-  findOne(id: string): NotificationRecord {
-    const record = this.store.get(id);
-    if (!record) throw new NotFoundException(`Notification ${id} not found`);
-    return record;
+  status(id: string): Promise<grpc.GetStatusResponse> {
+    return firstValueFrom(this.notificationGrpc.getStatus({ id }));
   }
 }
