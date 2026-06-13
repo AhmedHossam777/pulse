@@ -4,6 +4,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { grpc } from '@pulse/shared';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotificationEntity, PulseDatabaseModule } from '@pulse/database';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { NotificationService } from './notification.service';
         },
       },
     ]),
+    TypeOrmModule.forFeature([NotificationEntity]),
+    PulseDatabaseModule,
   ],
   controllers: [NotificationController],
   providers: [NotificationService],

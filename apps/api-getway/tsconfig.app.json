@@ -12,6 +12,9 @@
   "exclude": [],
   "references": [
     {
+      "path": "../../libs/database/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/shared/tsconfig.lib.json"
     }
   ]

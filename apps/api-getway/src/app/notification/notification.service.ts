@@ -1,7 +1,10 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { grpc } from '@pulse/shared';
+import { CreateNotificationDto, grpc } from '@pulse/shared';
+import { InjectRepository } from '@nestjs/typeorm';
+import { NotificationEntity } from '@pulse/database';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -9,6 +12,8 @@ export class NotificationService implements OnModuleInit {
 
   constructor(
     @Inject('NOTIFICATIONS_PACKAGE') private readonly client: ClientGrpc,
+    @InjectRepository(NotificationEntity)
+    private readonly repo: Repository<NotificationEntity>,
   ) {}
 
   onModuleInit() {
@@ -17,8 +22,12 @@ export class NotificationService implements OnModuleInit {
     );
   }
 
-  send(payload: grpc.SendRequest): Promise<grpc.SendResponse> {
-    return firstValueFrom(this.notificationGrpc.send(payload));
+  async send(dto: CreateNotificationDto): Promise<grpc.SendResponse> {
+    const row = await this.repo.save({ ...dto, status: 'PENDING' });
+    const ack = await firstValueFrom(
+      this.notificationGrpc.send({ ...dto, id: row.id }),
+    );
+    return { id: row.id, status: ack.status }; // ACCEPTED
   }
 
   status(id: string): Promise<grpc.GetStatusResponse> {

@@ -29,8 +29,6 @@ export class NotificationEntity {
   })
   status!: string;
 
-  @CreateDateColumn({
-    default: Date.now(),
-  })
+  @CreateDateColumn()
   createdAt!: Date;
 }
