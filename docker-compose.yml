@@ -1,24 +1,42 @@
+# docker-compose.yml
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: pulse-redis
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: pulse
+      POSTGRES_DB: pulse
+    ports: ["5433:5432"]   # host 5433 -> container 5432 (host 5432 is taken by local postgres)
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
       retries: 5
-    networks:
-      - pulse
 
-networks:
-  pulse:
-    driver: bridge
+  notifications:
+    build: { context: ., args: { APP: notifications } }
+    environment:
+      NODE_ENV: development          # enables TypeORM synchronize -> creates tables (dev only)
+      DATABASE_URL: postgres://postgres:pulse@postgres:5432/pulse
+    # gRPC server listens on 0.0.0.0:4001 (default in its main.ts)
+    depends_on:
+      postgres: { condition: service_healthy }
 
-volumes:
-  redis-data:
+  api-gateway:
+    build: { context: ., args: { APP: api-getway } }   # project/folder is "api-getway"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:pulse@postgres:5432/pulse
+      JWT_SECRET: super-secret-dev-key-1234
+      NOTIFICATION_GRPC_URL: notifications:4001   # service name; read by notification.module.ts
+    ports: ["3000:3000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      notifications: { condition: service_started }
+
+  admin-api:
+    build: { context: ., args: { APP: admin-api } }
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:pulse@postgres:5432/pulse
+    ports: ["3002:3002"]
+    depends_on:
+      postgres: { condition: service_healthy }

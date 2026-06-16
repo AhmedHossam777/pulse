@@ -16,7 +16,7 @@ import { NotificationEntity, PulseDatabaseModule } from '@pulse/database';
         options: {
           package: grpc.NOTIFICATION_PACKAGE,
           protoPath: join(__dirname, 'proto/notification.proto'),
-          url: '127.0.0.1:4001',
+          url: process.env.NOTIFICATION_GRPC_URL ?? '127.0.0.1:4001',
         },
       },
     ]),
