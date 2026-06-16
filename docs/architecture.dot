@@ -1,0 +1,55 @@
+digraph Pulse {
+  // ---- global ----
+  rankdir=TB;
+  bgcolor="white";
+  fontname="Helvetica";
+  fontsize=18;
+  labelloc="t";
+  label="Pulse — Notification Platform Architecture";
+  splines=spline;
+  nodesep=0.55;
+  ranksep=0.85;
+
+  node [fontname="Helvetica", fontsize=12, style="filled,rounded", shape=box, penwidth=1.2, margin="0.18,0.12"];
+  edge [fontname="Helvetica", fontsize=10, color="#555555", penwidth=1.2];
+
+  // ---- clients ----
+  client    [label="Client\n(REST consumer)", shape=oval, fillcolor="#ffffff", color="#888888"];
+  adminUser [label="Admin / Dashboard\n(REST consumer)", shape=oval, fillcolor="#ffffff", color="#888888"];
+
+  // ---- edge services ----
+  gateway [label="api-getway\nNestJS · HTTP :3000 /api\n(gRPC client)", fillcolor="#dbeafe", color="#3b82f6"];
+  admin   [label="admin-api\nNestJS · HTTP :3002 /api\n(read-only reporting)", fillcolor="#ffedd5", color="#f97316"];
+
+  // ---- interchangeable gRPC workers ----
+  subgraph cluster_workers {
+    label="Notification workers  (interchangeable — same notification.proto)";
+    labeljust="l";
+    fontsize=11;
+    style="rounded,dashed";
+    color="#9ca3af";
+    bgcolor="#fafafa";
+
+    notifTs [label="notifications\nNestJS · gRPC :4001\nSend / GetStatus", fillcolor="#dcfce7", color="#22c55e"];
+    notifGo [label="notifications-go\nGo · gRPC :4002\nSend / GetStatus", fillcolor="#fef9c3", color="#eab308"];
+  }
+
+  // ---- data ----
+  db [label="PostgreSQL :5432\nnotifications table\n(shared source of truth)", shape=cylinder, fillcolor="#ede9fe", color="#8b5cf6"];
+
+  // ---- flows ----
+  client    -> gateway [label="POST /api/notifications\nGET  /:id/status", fontcolor="#1d4ed8"];
+  adminUser -> admin   [label="GET /api/admin/notifications\nGET /api/admin/notifications/stats", fontcolor="#c2410c"];
+
+  gateway -> notifTs [label="gRPC Send / GetStatus\n(NOTIFICATION_GRPC_URL)", color="#16a34a", fontcolor="#16a34a"];
+  gateway -> notifGo [label="alt. target", style=dashed, color="#ca8a04", fontcolor="#ca8a04"];
+
+  gateway -> db [label="1. INSERT row (PENDING)", color="#7c3aed", fontcolor="#7c3aed"];
+  notifTs -> db [label="2. UPDATE row -> SENT", color="#7c3aed", fontcolor="#7c3aed"];
+  notifGo -> db [style=dashed, color="#7c3aed"];
+  admin   -> db [label="SELECT list + stats", color="#7c3aed", fontcolor="#7c3aed"];
+
+  // keep the two edge services on the same rank
+  // (workers share a rank naturally via their cluster)
+  { rank=same; gateway; admin; }
+}
