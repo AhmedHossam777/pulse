@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package notification;
+option go_package = "pulse/notifications-go/gen/notification;notification";
 
 service NotificationService{
     rpc Send (SendRequest) returns(SendResponse);

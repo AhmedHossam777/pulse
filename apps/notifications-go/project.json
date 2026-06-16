@@ -1,0 +1,64 @@
+{
+  "name": "notifications-go",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/notifications-go",
+  "tags": [
+    "type:app",
+    "scope:notifications",
+    "lang:go"
+  ],
+  "implicitDependencies": [
+    "shared"
+  ],
+  "targets": {
+    "proto-gen": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "protoc --go_out=. --go_opt=module=pulse/notifications-go --go-grpc_out=. --go-grpc_opt=module=pulse/notifications-go --proto_path=libs/shared/proto libs/shared/proto/notification.proto",
+        "cwd": "apps/notifications-go"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*.go",
+        "{projectRoot}/go.mod",
+        "{workspaceRoot}/libs/shared/proto/notification.proto"
+      ],
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "go build -o bin/notifications-go ./cmd",
+        "cwd": "apps/notifications-go"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go run ./cmd",
+        "cwd": "apps/notifications-go"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*.go"
+      ],
+      "options": {
+        "command": "go test ./...",
+        "cwd": "apps/notifications-go"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go vet ./...",
+        "cwd": "apps/notifications-go"
+      }
+    }
+  }
+}
