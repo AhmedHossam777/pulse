@@ -40,3 +40,11 @@ services:
     ports: ["3002:3002"]
     depends_on:
       postgres: { condition: service_healthy }
+
+  notifications-go:
+    build: { context: ., dockerfile: apps/notifications-go/Dockerfile }
+    environment:
+      DATABASE_URL: postgres://postgres:pulse@postgres:5432/pulse
+      GRPC_PORT: "4002"
+    depends_on:
+      postgres: { condition: service_healthy }
